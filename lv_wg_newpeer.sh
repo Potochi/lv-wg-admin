@@ -6,15 +6,15 @@ WIREGUARD_HOST="${WIREGUARD_HOST-<WIREGUARD HOST IP>}"
 
 WG_INTERFACE=$(basename "${WIREGUARD_CONFIG_PATH}" .conf)
 
-ip_to_num() { 
-    IFS="." read -r a b c d << EOF 
+ip_to_num() {
+    IFS="." read -r a b c d <<EOF
 $1
 EOF
     echo "$((a * 256 * 256 * 256 + b * 256 * 256 + c * 256 + d))"
 }
 
 num_to_ip() {
-    ip_number="$1";
+    ip_number="$1"
     delim=""
 
     for _ in 0 1 2 3; do
@@ -28,34 +28,31 @@ num_to_ip() {
 }
 
 gen_priv_key() { wg genkey; }
-gen_pub_key()  { echo "$1" | wg pubkey; }
+gen_pub_key() { echo "$1" | wg pubkey; }
 
 config_marker_start() { echo "# ======== $1 ========"; }
-config_marker_end()   { echo "# ===================="; }
+config_marker_end() { echo "# ===================="; }
 
-config_get_addess() { 
-    grep -E -i -w "Address" "${WIREGUARD_CONFIG_PATH}" \
-        | cut -d= -f2 \
-        | xargs echo;
+config_get_addess() {
+    grep -E -i -w "Address" "${WIREGUARD_CONFIG_PATH}" |
+        cut -d= -f2 |
+        xargs echo
 }
 
-
-config_get_ip() { 
-   config_get_addess | cut -d/ -f1
+config_get_ip() {
+    config_get_addess | cut -d/ -f1
 }
 
 config_get_subnet() {
-   config_get_addess | cut -d/ -f2
+    config_get_addess | cut -d/ -f2
 }
 
 config_get_network() {
     ip="$(ip_to_num "$(config_get_ip)")"
     subnet="$(config_get_subnet)"
 
-    num_to_ip "$(( ip & (~((1 << (32 - subnet)) - 1)) ))"
+    num_to_ip "$((ip & (~((1 << (32 - subnet)) - 1))))"
 }
-
-
 
 config_get_peer_count() { grep -c -E -i -w "\[Peer\]" "${WIREGUARD_CONFIG_PATH}"; }
 
@@ -71,9 +68,7 @@ get_next_peer_ip() {
 }
 
 get_server_pubkey() {
-    server_privkey=$(grep -E -i -w "PrivateKey" "$WIREGUARD_CONFIG_PATH" | cut -d'=' -f2- | xargs echo)
-
-    echo "$server_privkey"
+    grep -E -i -w "PrivateKey" "$WIREGUARD_CONFIG_PATH" | cut -d'=' -f2- | xargs echo | wg pubkey
 }
 
 config_add_peer() {
@@ -82,15 +77,15 @@ config_add_peer() {
     peer_pub_key="$3"
 
     {
-        echo;
+        echo
         config_marker_start "$peer_name"
 
         echo "[Peer]"
         echo "PublicKey = ${peer_pub_key}"
         echo "AllowedIPs = ${peer_ip}/32"
 
-        config_marker_end;
-    } >> "$WIREGUARD_CONFIG_PATH"
+        config_marker_end
+    } >>"$WIREGUARD_CONFIG_PATH"
 }
 
 config_reload() {
@@ -161,7 +156,7 @@ gui_add_user() {
 
     {
         config_generate_client_tunnel "$(get_server_pubkey)" "$peer_priv_key" "$peer_ip" "$peer_dns" "$allowed_ips" "$persistent_keepalive" "$wireguard_host"
-    } > "${tmpdir}/${WG_INTERFACE}.conf"
+    } >"${tmpdir}/${WG_INTERFACE}.conf"
 
     croc send "${tmpdir}/${WG_INTERFACE}.conf"
 
