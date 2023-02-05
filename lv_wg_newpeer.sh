@@ -160,7 +160,7 @@ gui_add_user() {
     tmpdir=$(mktemp -d 2>/dev/null || mktemp -d -t 'wg_admin')
 
     {
-        config_generate_client_tunnel "$(get_server_pubkey)" "$peer_priv_key" "$peer_ip" "$peer_dns" "$allowed_ips" "$persistent_keepalive"
+        config_generate_client_tunnel "$(get_server_pubkey)" "$peer_priv_key" "$peer_ip" "$peer_dns" "$allowed_ips" "$persistent_keepalive" "$wireguard_host"
     } > "${tmpdir}/${WG_INTERFACE}.conf"
 
     croc send "${tmpdir}/${WG_INTERFACE}.conf"
