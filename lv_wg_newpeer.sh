@@ -89,7 +89,11 @@ config_add_peer() {
 }
 
 config_reload() {
-    wg-quick strip "$WG_INTERFACE" | wg syncconf "$WG_INTERFACE"
+    (
+        tmpfile=$(mktemp)
+        wg-quick strip "$WG_INTERFACE" >"$tmpfile"
+        wg syncconf "$WG_INTERFACE" "$tmpfile"
+    )
 }
 
 config_generate_client_tunnel() {
