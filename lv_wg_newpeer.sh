@@ -164,3 +164,4 @@ gui_add_user() {
 }
 
 gui_add_user
+config_reload
