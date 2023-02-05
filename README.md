@@ -11,3 +11,6 @@ Run
 ```sh
 ./lv_wg_newpeer.sh
 ```
+
+## Requirements
+This script uses `croc` to send the configuration file to a client.
